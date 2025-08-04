@@ -1,8 +1,9 @@
 import socket
 from abc import ABC, abstractmethod
+from core.protocols.http import HTTPRequest, HTTPParser
 
 class BaseServer(ABC):
-    def __init__(self, host='0.0.0.0', port=43252):
+    def __init__(self, host='0.0.0.0', port=8080):
         self.host = host
         self.port = port
         self.listening_socket = None
@@ -37,28 +38,20 @@ class SyncServer(BaseServer):
             while self.is_running:
                 # 클라이언트 연결 소켓 생성
                 conn, addr = self.listening_socket.accept()
-                # 클라이언트 연결 예외 처리
-                print(f"Connecdted by {addr}")
-
-                # 데이터 수신
-                payload = conn.recv(1024)
-                # 데이터 수신 예외 처리
-
-                print(f"Received payload: {payload}")
-
-                conn.sendall("response".encode('utf-8'))
-                conn.close()
+                self.handle_client(conn, addr)
 
         except Exception as e:
             print(f"Error occurred: {e}")
         finally:
             self.stop()
 
-    def handle_client(conn, addr):
+    def handle_client(self, conn, addr):
         try:
-            print(f"Connencted by {addr}")
+            print(f"Connnected by {addr}")
             payload = conn.recv(1024)
-            print(f"Receieved payload: {payload}")
+            raw_request = payload.decode('utf-8')
+            request = HTTPParser.parse_request(raw_request)
+            request.print_self()
             with open('templates/index.html', 'r', encoding='utf-8') as f:
                 content = f.read()
                     
