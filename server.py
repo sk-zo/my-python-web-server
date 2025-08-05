@@ -1,6 +1,7 @@
 import socket
 from abc import ABC, abstractmethod
-from core.protocols.http import HTTPRequest, HTTPParser
+from core.protocols.http import HTTPRequest, HTTPResponse, HTTPParser
+from core.routes import routes, not_found
 
 class BaseServer(ABC):
     def __init__(self, host='0.0.0.0', port=8080):
@@ -52,17 +53,13 @@ class SyncServer(BaseServer):
             raw_request = payload.decode('utf-8')
             request = HTTPParser.parse_request(raw_request)
             request.print_self()
-            with open('templates/index.html', 'r', encoding='utf-8') as f:
-                content = f.read()
-                    
-                response = f"HTTP/1.1 200 OK\r\n"
-                response += f"Content-Type: text/html; charset=utf-8\r\n"
-                response += f"Content-Length: {len(content.encode('utf-8'))}\r\n"
-                response += f"Connection: close\r\n"
-                response += f"\r\n"
-                response += content
 
-                conn.sendall(response.encode('utf-8'))
+            route_key = (request.method, request.path)
+            handler = routes.get(route_key, not_found)
+
+            response = handler(request)
+
+            conn.sendall(response.to_bytes())
         finally:
             conn.close()
 

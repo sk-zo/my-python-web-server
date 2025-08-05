@@ -16,6 +16,46 @@ class HTTPRequest:
         request += '\r\n' + self.body
 
         print(request)
+
+class HTTPResponse:
+    def __init__(self, status_code=200, body="", headers=None):
+        self.status_code = status_code
+        self.body = body
+        self.headers = headers or {}
+
+    @classmethod
+    def html(cls, status_code, body):
+        headers = {"Content-Type": "text/html; charset=utf-8"}
+        return cls(status_code=status_code, body=body, headers=headers)  # 명시적으로 지정!
+
+    @classmethod
+    def json(cls, status_code, body):
+        import json
+        headers = {"Content-Type": "application/json; charset=utf-8"}
+        return cls(status_code=status_code, body=body, headers=headers)
+
+    def to_http_string(self):
+        response = f"HTTP/1.1 {self.status_code} {self._get_status_text()}\r\n"
+        
+        for key, value in self.headers.items():
+            response += f"{key}: {value}\r\n"
+
+        response += f"\r\n{self.body}"
+        print(f"response:\r\n{response}")
+        return response
+
+    def to_bytes(self):
+        return self.to_http_string().encode('utf-8')
+
+    def _get_status_text(self):
+        status_texts = {
+            200: "OK",
+            404: "Not Found",
+            500: "Internal Server Error",
+            400: "Bad Request"
+        }
+
+        return status_texts[self.status_code]
         
 
 
