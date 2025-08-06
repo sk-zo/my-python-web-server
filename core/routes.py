@@ -9,10 +9,17 @@ def index(request):
 def post_index(request):
     return HTTPResponse.json(200, {"message": "post_index"})
 
-def not_found(request):
+def not_found(request=None):
     with open('templates/404.html', 'r', encoding='utf-8') as f:
         content = f.read()
+
     return HTTPResponse.html(404, content)
+
+def bad_request(request=None):
+    with open('templates/400.html', 'r', encoding='utf-8') as f:
+        content = f.read()
+
+    return HTTPResponse.html(400, content)
 
 routes = {
     ('GET', '/'): index,
